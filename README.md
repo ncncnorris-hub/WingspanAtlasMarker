@@ -1,5 +1,7 @@
 # Wingspan Atlas Marker
 
+**简体中文 | [English](README.en.md)**
+
 一个 [Wingspan](https://store.steampowered.com/app/1054490/Wingspan/)（《展翅翱翔》）的 BepInEx MOD：
 在对局中检测你**手牌 / 鸟盘里从没打过的鸟**，并在 BepInEx 控制台高亮列出，
 方便冲「打出每一种鸟」这类成就。
