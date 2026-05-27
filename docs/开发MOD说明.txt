@@ -1,0 +1,91 @@
+Wingspan「没打过的鸟」提示 MOD — 开发说明
+==========================================
+
+用于在另一台电脑上修改源码并重新编译这个插件。
+（只想运行、不改代码，请看《运行MOD说明.txt》。）
+
+
+一、前置环境
+------------
+1. 先按《运行MOD说明.txt》把 MOD 跑起来一次，确保：
+   - BepInEx 已装进游戏并能正常加载；
+   - 首次启动已生成 interop 接口程序集（编译时要引用它们，必须先有）。
+   接口目录：  <游戏根目录>\BepInEx\interop\
+
+2. 安装 .NET SDK 6.0 或更高（能编译 net6.0 目标）。
+   验证：命令行执行   dotnet --version
+
+3. 任意代码编辑器（VS Code / Visual Studio / Rider 皆可，非必需）。
+
+
+二、放置源码
+------------
+把本包 Source\ 里的文件放到一个工作目录，例如：
+    F:\MOD-making\WingspanAtlasMarker\
+        Plugin.cs
+        WingspanAtlasMarker.csproj
+
+
+三、改 csproj 里的游戏路径（关键）
+----------------------------------
+打开 WingspanAtlasMarker.csproj，把 <GameDir> 改成【这台电脑】的 Wingspan 安装路径：
+    <GameDir>X:\你的路径\steamapps\common\Wingspan</GameDir>
+
+csproj 会自动从该路径下的：
+    BepInEx\core\      —— BepInEx / Harmony / Il2CppInterop 运行时
+    BepInEx\interop\   —— 游戏与 Unity 的接口程序集（首次启动生成）
+引用所需 DLL，并在编译后自动把产物复制到 BepInEx\plugins\ 。
+
+当前引用到的接口程序集（都在 interop 或 core 下）：
+    ScriptAssembly（游戏类）、ACTk.Runtime（加密类型 Obscured*）、
+    Il2Cppmscorlib、Il2CppSystem、UnityEngine(.CoreModule/.UI/.UIModule)、
+    Il2CppInterop.Runtime/Common、0Harmony、BepInEx.Core、BepInEx.Unity.IL2CPP
+
+
+四、编译
+--------
+在源码目录执行：
+    dotnet build
+
+- 成功后会自动部署到：
+    <GameDir>\BepInEx\plugins\WingspanAtlasMarker\WingspanAtlasMarker.dll
+  （由 csproj 里的 DeployToPlugins 目标负责）。
+- 重新编译 / 部署前请先【完全退出游戏】，否则 DLL 被占用，复制会失败
+  （报 MSB3027「文件被 Wingspan.exe 锁定」）。
+
+
+五、技术要点（改代码时心里有数）
+--------------------------------
+- 目标：Unity IL2CPP，x86，所有托管 / 原生件都必须是 x86。
+- 游戏类在接口程序集 ScriptAssembly.dll 里，位于【全局命名空间】（无 Il2Cpp 前缀）；
+  存档类 Storage.Save 在 Storage 命名空间。
+- 心跳：Harmony Postfix 挂在 GameLoader.Update（每帧触发、过游戏重置仍在）；
+  用 Time.frameCount 节流，避免 deltaTime 反馈把帧率拖垮。
+- 取屏上的卡：UnityEngine.Object.FindObjectsOfType（只返回激活对象，便宜）；
+  千万别用 Resources.FindObjectsOfTypeAll（含未激活 + 资源，极贵，会卡死）。
+- 数据：
+    已打过的鸟  = Storage.Save.I.BirdAtlasSave.UnlockedBirdsID  (List<int>)
+    某只鸟静态数据 = BirdDatabase.Get(id) → BirdData
+    数值字段是 ACTk 加密类型(ObscuredInt/Float/Bool)，用 .GetDecrypted() 取明文。
+  扫描时跳过 id<=0（Any 占位）和 999999（None），它们不是真实鸟。
+- 位置判定：取 PlayerHandUI / BirdDeckUI 的 Transform，用 card.transform.IsChildOf()
+  判断卡在手牌还是鸟盘。别用泛型 GetComponentInParent<T>()——每张卡逐层查找在
+  Il2CppInterop 下很贵，鸟盘预览卡数暴涨时会把游戏卡死。
+- 控制台中文会乱码（代码页 / 字体限制），所以终端输出全用 ASCII；要中文请走
+  .log 文件或另写 UTF-8 旁路文件。
+- 终端整洁：靠 BepInEx.cfg 的 [Logging.Console] LogLevels 只放行 Warning 及以上；
+  我们的提示都是 LogWarning，所以能留下。游戏的 [Operations] 等日志是 Message 级、
+  会被挡掉，插件通过 Application.logMessageReceived 把含指定标签的行用 Warning 级
+  重新打出来（见 Plugin.cs 里的 RelayTags 列表）。想多放行别的标签，往该列表加字符串即可。
+- 委托回调（如 logMessageReceived）要用
+    DelegateSupport.ConvertDelegate<Il2Cpp委托类型>(new Action<...>(方法))
+  转换，不能直接用方法组 new 出 Il2Cpp 委托。
+
+
+六、查 API（可选）
+------------------
+要查某个游戏类 / 字段，可用 Il2CppDumper 或 Il2CppInspector 对：
+    GameAssembly.dll
+    Wingspan_Data\il2cpp_data\Metadata\global-metadata.dat
+做 dump，得到可读的 dump.cs 后再搜索。
+（注意 dump 仅供查阅，不参与编译。）

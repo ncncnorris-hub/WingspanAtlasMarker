@@ -1,0 +1,76 @@
+Wingspan「没打过的鸟」提示 MOD — 运行说明
+==========================================
+
+这个 MOD 在对局中检测你手牌 / 鸟盘里「从没打过的鸟」，并在 BepInEx 控制台
+高亮列出它们的名字、位置(HAND/TRAY)和基础数据(VP/Eggs/WS/Nest/Hab)，
+方便冲「打出每一种鸟」成就。
+
+本 MOD 只读取存档里的「已打过鸟」列表，不修改游戏本体、不写存档、不碰成就，卸载后不留痕迹。
+
+
+适用环境（重要）
+----------------
+- 游戏：Steam 版 Wingspan，IL2CPP，x86（32 位）
+- 加载器：BepInEx 6.0.0-be.755 (Unity.IL2CPP, win-x86)
+- 插件针对【某个游戏版本】编译。两台电脑都走 Steam 通常自动更新到同版本，一般没问题；
+  若版本差异较大导致游戏内部结构对不上，插件可能失效甚至报错。→ 同版本最稳。
+
+
+安装步骤
+--------
+本 MOD 不附带 BepInEx，需要你先自行安装，再放入插件 DLL。
+
+第 1 步：安装 BepInEx（同版本，IL2CPP / win-x86）
+  1) 打开 https://github.com/BepInEx/BepInEx/releases
+     找到版本 6.0.0-be.755，下载  BepInEx-Unity.IL2CPP-win-x86-*.zip
+     （务必是 IL2CPP + win-x86 那个变体，别下错成 Mono 或 x64）
+  2) 解压到游戏根目录：
+        ...\steamapps\common\Wingspan\
+     （Steam 库 → 右键 Wingspan → 管理 → 浏览本地文件）
+     解压后根目录应出现 winhttp.dll、doorstop_config.ini、BepInEx\ 等。
+  3) 从 Steam 启动一次游戏。※ 首次启动明显变慢（1~3 分钟）：BepInEx 正在按你的
+     游戏版本生成 interop 接口文件，属正常现象。进主菜单后退出。
+
+第 2 步：放入本插件
+  把  WingspanAtlasMarker.dll  放到：
+      <游戏根目录>\BepInEx\plugins\WingspanAtlasMarker\WingspanAtlasMarker.dll
+  （插件包 zip 里已带这个 DLL 和 卸载.bat。）
+
+第 3 步（可选）：让控制台更干净
+  编辑  BepInEx\config\BepInEx.cfg ，把 [Logging.Console] 段的
+      LogLevels = Fatal, Error, Warning, Message, Info
+  改成
+      LogLevels = Fatal, Error, Warning
+  这样游戏自身的刷屏日志不再进控制台，只保留本 MOD 的提示。
+
+第 4 步：启动游玩
+  再次从 Steam 启动，开一局。当手牌 / 鸟盘出现没打过的鸟时，BepInEx 黑色控制台
+  会高亮列出，例如：
+      UNPLAYED (1)
+      Korimako(301) [HAND] {VP:4 Eggs:3 WS:22 Nest:Bowl Hab:F}
+
+
+字段含义
+--------
+  位置   HAND = 在你手牌    TRAY = 在鸟盘（可抽取）
+  VP     分数
+  Eggs   产蛋上限
+  WS     翼展（厘米）
+  Nest   巢型（None/Ground/Bowl/Platform/Cavity/Wild）
+  Hab    可放栖息地（F=森林  G=草原  W=湿地，多个用 / 连接）
+
+完整日志始终写在 BepInEx\LogOutput.log（UTF-8，中文不乱码）。
+
+
+卸载
+----
+完成成就、想恢复原版时（游戏本体、存档、成就都不受影响）：
+
+【一键卸载】先完全退出 Wingspan，再到游戏根目录双击  卸载.bat （插件包里自带），
+  按 Y 确认，它会删除 winhttp.dll、doorstop_config.ini、.doorstop_version、
+  dotnet\、BepInEx\ ，游戏即恢复原版。
+
+【只去掉本插件、保留 BepInEx】删除 BepInEx\plugins\WingspanAtlasMarker\ 即可。
+
+【手动彻底卸载】删除游戏根目录的 winhttp.dll、doorstop_config.ini、.doorstop_version、
+  dotnet\、BepInEx\ 。（删 BepInEx 前如想留日志，先备份 BepInEx\LogOutput.log。）
