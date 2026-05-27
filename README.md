@@ -3,8 +3,9 @@
 一个 [Wingspan](https://store.steampowered.com/app/1054490/Wingspan/)（《展翅翱翔》）的 BepInEx MOD：
 在对局中检测你**手牌 / 鸟盘里从没打过的鸟**，并在 BepInEx 控制台高亮列出，
 方便冲「打出每一种鸟」这类成就。
-
 > 检测纯只读：只读取存档里的「已打过鸟」列表，**不修改游戏本体、不写存档、不碰成就**。卸载后不留痕迹。
+<img width="795" height="348" alt="image" src="https://github.com/user-attachments/assets/49eaddf0-8afa-458d-9596-f3dc96572e83" />
+
 
 ## 功能
 
